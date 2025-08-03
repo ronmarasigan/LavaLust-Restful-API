@@ -11,7 +11,29 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 | and disable it back when you're done.
 |
 */
-$config['api_helper_enabled'] = FALSE;
+$config['api_helper_enabled'] = TRUE;
+
+
+/*
+|--------------------------------------------------------------------------
+| Payload Token Expiration
+|--------------------------------------------------------------------------
+|
+| Used for Payload Token Expiration
+|
+*/
+$config['payload_token_expiration'] = 1800;
+
+
+/*
+|--------------------------------------------------------------------------
+| Refresh Token Expiration
+|--------------------------------------------------------------------------
+|
+| Used for Refresh Token Expiration
+|
+*/
+$config['refresh_token_expiration'] = 604800;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,7 +43,7 @@ $config['api_helper_enabled'] = FALSE;
 | Used for Securing endpoint
 |
 */
-$config['jwt_secret'] = 'l99H8TM4Q4JXFM3Hr8LN';
+$config['jwt_secret'] = 'abc123';
 
 /*
 |--------------------------------------------------------------------------
@@ -31,7 +53,7 @@ $config['jwt_secret'] = 'l99H8TM4Q4JXFM3Hr8LN';
 | Used for Securing endpoint
 |
 */
-$config['refresh_token_key'] = 'BDswlrEaYWAgeJ4VurGe';
+$config['refresh_token_key'] = 'abc123';
 
 /*
 |--------------------------------------------------------------------------

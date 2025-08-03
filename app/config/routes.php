@@ -43,4 +43,13 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 |
 */
 
+$_lava =& lava_instance();
 $router->get('/', 'Welcome::index');
+$router->post('login', 'Api_controller::login');
+$router->post('logout', 'Api_controller::logout');
+$router->post('create', 'Api_controller::create');
+$router->put('update/{id}', 'Api_controller::update');
+$router->delete('delete/{id}', 'Api_controller::delete');
+$router->get('list', 'Api_controller::list');
+$router->get('profile', 'Api_controller::profile');
+$router->post('refresh', 'Api_controller::refresh');

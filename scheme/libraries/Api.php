@@ -14,28 +14,51 @@ class Api
      *
      * @var string
      */
-    protected $refresh_token_table = '';
+    protected $refresh_token_table;
 
     /**
-     * Allow Origin
+     * Api Payload Token Expiration
+     *
+     * This is used for Payload Token Expiration.
+     * Default is 900 seconds (15 minutes).
+     *
+     * @var integer
+     */
+    protected $payload_token_expiration;
+
+    /**
+     * Api Refresh Token Expiration
+     *
+     * This is used for Refresh Token Expiration.
+     * Default is 604800 seconds (7 days).
+     *
+     * @var integer
+     */
+    protected $refresh_token_expiration;
+
+    /**
+     * Api Allow Origin
+     *
+     * This is used to set the Access-Control-Allow-Origin header.
+     * Change this to your domain if already deployed.
      *
      * @var string
      */
-    protected $allow_origin = '*';
+    protected $allow_origin;
 
     /**
      * Secret Code
      *
      * @var string
      */
-    private $jwt_secret = '';
+    private $jwt_secret;
 
     /**
      * Refresh Token
      *
      * @var string
      */
-    private $refresh_token_key = '';
+    private $refresh_token_key;
 
     public function __construct()
     {
@@ -48,7 +71,10 @@ class Api
         }
 
         $this->refresh_token_table = config_item('refresh_token_table');
-
+        $this->payload_token_expiration = config_item('payload_token_expiration');
+        $this->refresh_token_expiration = config_item('refresh_token_expiration');
+        $this->jwt_secret = config_item('jwt_secret');
+        $this->refresh_token_key = config_item('refresh_token_key');
         $this->allow_origin = config_item('allow_origin');
 
         //Handle CORS
@@ -242,14 +268,14 @@ class Api
             'role' => $user_data['role'] ?? 'user',
             'scopes' => $scopes,
             'iat' => $now,
-            'exp' => $now + 900
+            'exp' => $now + $this->payload_token_expiration
         ];
 
         $refresh_payload = [
             'sub' => $user_id,
             'type' => 'refresh',
             'iat' => $now,
-            'exp' => $now + 604800
+            'exp' => $now + $this->refresh_token_expiration
         ];
 
         $access_token = $this->encode_jwt($access_payload);
@@ -263,7 +289,7 @@ class Api
         return [
             'access_token' => $access_token,
             'refresh_token' => $refresh_token_raw,
-            'expires_in' => 900
+            'expires_in' => $this->payload_token_expiration
         ];
     }
 
