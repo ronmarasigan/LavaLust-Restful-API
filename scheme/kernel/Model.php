@@ -166,10 +166,6 @@ class Model {
         return $this->db->get_all();
     }
 
-    public function get_all($with_deleted = false) {
-        return $this->all($with_deleted);
-    }
-
     /**
      * Restore Soft Deleted Row
      *

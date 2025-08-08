@@ -37,10 +37,7 @@ class Api
     protected $refresh_token_expiration;
 
     /**
-     * Api Allow Origin
-     *
-     * This is used to set the Access-Control-Allow-Origin header.
-     * Change this to your domain if already deployed.
+     * Allow Origin
      *
      * @var string
      */
@@ -268,14 +265,14 @@ class Api
             'role' => $user_data['role'] ?? 'user',
             'scopes' => $scopes,
             'iat' => $now,
-            'exp' => $now + $this->payload_token_expiration
+            'exp' => $now + 900
         ];
 
         $refresh_payload = [
             'sub' => $user_id,
             'type' => 'refresh',
             'iat' => $now,
-            'exp' => $now + $this->refresh_token_expiration
+            'exp' => $now + 604800
         ];
 
         $access_token = $this->encode_jwt($access_payload);
@@ -289,7 +286,7 @@ class Api
         return [
             'access_token' => $access_token,
             'refresh_token' => $refresh_token_raw,
-            'expires_in' => $this->payload_token_expiration
+            'expires_in' => 900
         ];
     }
 

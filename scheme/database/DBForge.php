@@ -139,11 +139,17 @@ class DBForge {
             if (isset($details['constraint'])) {
                 $col .= "({$details['constraint']})";
             }
-            if (isset($details['unsigned']) && $details['unsigned'] === TRUE) {
-                $col .= " UNSIGNED";
-            } else {
-                $col .= " SIGNED";
+
+            $numeric_types = ['INT', 'TINYINT', 'SMALLINT', 'MEDIUMINT', 'BIGINT', 'DECIMAL', 'FLOAT', 'DOUBLE'];
+            $type_upper = strtoupper(preg_replace('/\(.*/', '', $details['type']));
+            if (in_array($type_upper, $numeric_types)) {
+                if (isset($details['unsigned']) && $details['unsigned'] === TRUE) {
+                    $col .= " UNSIGNED";
+                } else {
+                    $col .= " SIGNED";
+                }
             }
+
             if (isset($details['auto_increment']) && $details['auto_increment']) {
                 $col .= " AUTO_INCREMENT";
             }
@@ -152,6 +158,7 @@ class DBForge {
             }
             $columns[] = $col;
         }
+
 
         if (!empty($this->primary_key)) {
             $columns[] = "PRIMARY KEY (" . implode(", ", $this->primary_key) . ")";
@@ -163,11 +170,8 @@ class DBForge {
 
         $sql = "CREATE TABLE " . ($if_not_exists ? "IF NOT EXISTS " : "") . "$table_name (" . implode(", ", $columns) . ")";
         $this->execute($sql);
-        echo "Table '$table_name' created successfully.\n";
-        //Reset
-        $this->fields = [];
-        $this->primary_key = [];
-        $this->foreign_keys = [];
+        $this->reset();
+        echo "Table '$table_name' created successfully.<br>";
     }
 
     /**
@@ -180,12 +184,20 @@ class DBForge {
     {
         $sql = "DROP TABLE IF EXISTS $table_name";
         $this->execute($sql);
-        echo "Table '$table_name' dropped successfully.\n";
+        echo "Table '$table_name' dropped successfully.<br>";
     }
 
     // Execute an SQL query
     protected function execute($sql)
     {
         return $this->_lava->db->raw($sql);
+    }
+
+    //Reset
+    public function reset()
+    {
+        $this->fields = [];
+        $this->primary_key = [];
+        $this->foreign_keys = [];
     }
 }
