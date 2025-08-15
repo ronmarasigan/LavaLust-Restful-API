@@ -39,7 +39,6 @@ class Api_controller extends Controller {
     public function list() {
         $stmt = $this->db->table('users')
                         ->select('id, username, email, role, created_at')
-                        ->limit(2)
                         ->get_all();
         $this->api->respond($stmt);
     }
