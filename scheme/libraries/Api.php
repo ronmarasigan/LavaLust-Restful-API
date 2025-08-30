@@ -166,10 +166,15 @@ class Api
      * @param string $token
      * @return void
      */
-    public function decode_jwt($token)
+    public function decode_jwt($token = null)
     {
+        // If no token passed, try to auto-detect it from the Authorization header
+        if ($token === null) {
+            $token = $this->getBearerToken();
+        }
+
         if (!is_string($token) || trim($token) === '') {
-            return false; // invalid token
+            return false; // No token provided
         }
 
         $parts = explode('.', $token);
@@ -177,7 +182,7 @@ class Api
 
         [$header, $payload, $signature] = $parts;
 
-        // Recreate the signature
+        // Recreate signature (JWT uses URL-safe base64)
         $valid_sig = rtrim(strtr(
             base64_encode(hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true)),
             '+/', '-_'
@@ -188,6 +193,29 @@ class Api
         }
 
         return json_decode(base64_decode($payload), true);
+    }
+
+    //Helper inside the same class
+    private function getBearerToken()
+    {
+        $headers = null;
+
+        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            $headers = $_SERVER['HTTP_AUTHORIZATION'];
+        } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            $headers = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        } elseif (function_exists('apache_request_headers')) {
+            $requestHeaders = apache_request_headers();
+            if (isset($requestHeaders['Authorization'])) {
+                $headers = $requestHeaders['Authorization'];
+            }
+        }
+
+        if (!empty($headers) && preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
     }
 
 
