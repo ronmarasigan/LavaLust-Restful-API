@@ -143,76 +143,58 @@ class Api
         $this->respond(['error' => $message], $code);
     }
 
+    private function base64url_encode($data)
+{
+    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
+
+private function base64url_decode($data)
+{
+    $remainder = strlen($data) % 4;
+    if ($remainder) {
+        $data .= str_repeat('=', 4 - $remainder);
+    }
+    return base64_decode(strtr($data, '-_', '+/'));
+}
+
     // --------------------------
     // Auth: JWT
     // --------------------------
-    /**
-     * encode_jwt
-     *
-     * @param array $payload
-     * @return void
-     */
     public function encode_jwt(array $payload)
-    {
-        $header = base64_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
-        $payload = base64_encode(json_encode($payload));
-        $signature = hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true);
-        return "$header.$payload." . base64_encode($signature);
+{
+    $header = $this->base64url_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
+    $body   = $this->base64url_encode(json_encode($payload));
+    $signatureRaw = hash_hmac('sha256', "{$header}.{$body}", $this->jwt_secret, true);
+    $signature = $this->base64url_encode($signatureRaw);
+    return "{$header}.{$body}.{$signature}";
+}
+
+public function decode_jwt($token)
+{
+    // Defensive: must be non-empty string
+    if (!is_string($token) || trim($token) === '') {
+        return false;
     }
 
-    /**
-     * decode_jwt
-     *
-     * @param string $token
-     * @return void
-     */
-    public function decode_jwt($token)
-    {
-        if (empty($token) || !is_string($token)) {
-            return false;
-        }
+    $parts = explode('.', $token);
+    if (count($parts) !== 3) return false;
+    [$headerB64, $payloadB64, $signatureB64] = $parts;
 
-        $parts = explode('.', $token);
-        if (count($parts) !== 3) return false;
+    // Recreate signature using URL-safe base64
+    $expectedRaw = hash_hmac('sha256', "{$headerB64}.{$payloadB64}", $this->jwt_secret, true);
+    $expectedSig = $this->base64url_encode($expectedRaw);
 
-        [$header, $payload, $signature] = $parts;
-
-        $valid_sig = rtrim(strtr(
-            base64_encode(
-                hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true)
-            ),
-            '+/',
-            '-_'
-        ), '=');
-
-        if (!hash_equals($valid_sig, $signature)) return false;
-
-        return json_decode(base64_decode($payload), true);
+    // Use hash_equals to prevent timing attacks
+    if (!is_string($signatureB64) || !hash_equals($expectedSig, $signatureB64)) {
+        return false;
     }
 
+    $payloadJson = $this->base64url_decode($payloadB64);
+    if ($payloadJson === false) return false;
 
-    //Helper inside the same class
-    private function getBearerToken()
-    {
-        $headers = null;
-
-        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
-            $headers = $_SERVER['HTTP_AUTHORIZATION'];
-        } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-            $headers = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
-        } elseif (function_exists('apache_request_headers')) {
-            $requestHeaders = apache_request_headers();
-            if (isset($requestHeaders['Authorization'])) {
-                $headers = $requestHeaders['Authorization'];
-            }
-        }
-
-        if (!empty($headers) && preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
-            return $matches[1];
-        }
-
-        return null;
-    }
+    $payload = json_decode($payloadJson, true);
+    return is_array($payload) ? $payload : false;
+}
 
 
     /**
@@ -222,42 +204,93 @@ class Api
      * @return void
      */
     public function validate_jwt($token)
-    {
-        $payload = $this->decode_jwt($token);
-        if (!$payload) return false;
+{
+    $payload = $this->decode_jwt($token);
+    if (!$payload) return false;
+    if (!isset($payload['sub'], $payload['iat'], $payload['exp'])) return false;
+    if ($payload['exp'] < time()) return false;
+    return $payload;
+}
 
-        if (!isset($payload['sub'], $payload['iat'], $payload['exp'])) return false;
-        if ($payload['exp'] < time()) return false;
-
-        return $payload;
+// helper - normalize headers (works on many servers)
+private function get_all_request_headers()
+{
+    if (function_exists('getallheaders')) {
+        $h = getallheaders();
+        if (is_array($h)) return $h;
     }
 
-    /**
-     * get_bearer_token
-     *
-     * @return void
-     */
-    public function get_bearer_token()
-    {
-        $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-        if (preg_match('/Bearer\s(\S+)/', $header, $matches)) {
-            return $matches[1];
+    if (function_exists('apache_request_headers')) {
+        $h = apache_request_headers();
+        if (is_array($h)) return $h;
+    }
+
+    // Fallback: gather from $_SERVER
+    $headers = [];
+    foreach ($_SERVER as $name => $value) {
+        if (substr($name, 0, 5) === 'HTTP_') {
+            $key = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))));
+            $headers[$key] = $value;
         }
-        return null;
     }
+
+    if (isset($_SERVER['CONTENT_TYPE'])) $headers['Content-Type'] = $_SERVER['CONTENT_TYPE'];
+    if (isset($_SERVER['CONTENT_LENGTH'])) $headers['Content-Length'] = $_SERVER['CONTENT_LENGTH'];
+
+    return $headers;
+}
+
+public function get_bearer_token()
+{
+    // Try several locations and normalize
+    $header = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+
+    if (empty($header)) {
+        $all = $this->get_all_request_headers();
+        // Normalize key names (some servers use lowercase)
+        foreach ($all as $k => $v) {
+            if (strtolower($k) === 'authorization') {
+                $header = $v;
+                break;
+            }
+        }
+    }
+
+    // If still empty, return null
+    if (empty($header)) return null;
+
+    // Accept formats: "Bearer <token>" or just "<token>"
+    if (preg_match('/Bearer\s+(\S+)/i', $header, $matches)) {
+        return $matches[1];
+    }
+
+    // If header contains a token without "Bearer"
+    $header = trim($header);
+    if ($header !== '') return $header;
+
+    return null;
+}
+
 
     /**
      * require_jwt
      *
      * @return void
      */
-    public function require_jwt()
-    {
-        $token = $this->get_bearer_token();
-        $payload = $this->validate_jwt($token);
-        if (!$payload) $this->respond_error('Unauthorized', 401);
-        return $payload;
+public function require_jwt()
+{
+    $token = $this->get_bearer_token();
+    // If token is null, respond with proper 401 (no decode attempt)
+    if (!$token) {
+        $this->respond_error('Unauthorized: missing token', 401);
     }
+
+    $payload = $this->validate_jwt($token);
+    if (!$payload) {
+        $this->respond_error('Unauthorized: invalid or expired token', 401);
+    }
+    return $payload;
+}
 
     // --------------------------
     // Auth: Token System
