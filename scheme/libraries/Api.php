@@ -89,39 +89,57 @@ class Api
     // --------------------------
     // Auth: JWT
     // --------------------------
-    public function encode_jwt(array $payload)
-    {
-        $header    = rtrim(strtr(base64_encode(json_encode(['alg'=>'HS256','typ'=>'JWT'])), '+/', '-_'), '=');
-        $payload   = rtrim(strtr(base64_encode(json_encode($payload)), '+/', '-_'), '=');
-        $signature = hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true);
-        $signature = rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
-        return "$header.$payload.$signature";
+    private function base64url_encode($data)
+{
+    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
+
+private function base64url_decode($data)
+{
+    return base64_decode(strtr($data, '-_', '+/'));
+}
+
+public function encode_jwt($payload)
+{
+    $header = $this->base64url_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
+    $payload = $this->base64url_encode(json_encode($payload));
+    $signature = $this->base64url_encode(
+        hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true)
+    );
+    return "$header.$payload.$signature";
+}
+
+public function decode_jwt($token)
+{
+    if (!is_string($token) || trim($token) === '') {
+        return false;
     }
 
-    public function decode_jwt($token)
-    {
-        if (!is_string($token) || trim($token) === '') {
-            return false;
-        }
-
-        $parts = explode('.', $token);
-        if (count($parts) !== 3) {
-            return false;
-        }
-
-        [$header, $payload, $signature] = $parts;
-
-        $expected_sig = rtrim(strtr(
-            base64_encode(hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true)),
-            '+/', '-_'), '=');
-
-        if (!hash_equals($expected_sig, $signature)) {
-            return false;
-        }
-
-        $decoded = json_decode(base64_decode(strtr($payload, '-_', '+/')), true);
-        return is_array($decoded) ? $decoded : false;
+    $parts = explode('.', $token);
+    if (count($parts) !== 3) {
+        return false;
     }
+
+    list($header, $payload, $signature) = $parts;
+
+    $valid_sig = $this->base64url_encode(
+        hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true)
+    );
+
+    if (!hash_equals($valid_sig, $signature)) {
+        return false;
+    }
+
+    $decoded = json_decode($this->base64url_decode($payload), true);
+
+    // check expiration if exists
+    if (isset($decoded['exp']) && time() >= $decoded['exp']) {
+        return false;
+    }
+
+    return $decoded;
+}
+
 
     public function validate_jwt($token)
     {
