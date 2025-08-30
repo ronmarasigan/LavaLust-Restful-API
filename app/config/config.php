@@ -64,7 +64,7 @@ $config['VERSION']                 = '4.0';
 | -------------------------------------------------------------------
 | Values: development and production
 */
-$config['ENVIRONMENT']             = 'development';
+$config['ENVIRONMENT']             = 'production';
 
 /*
 |--------------------------------------------------------------------------

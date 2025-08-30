@@ -168,15 +168,28 @@ class Api
      */
     public function decode_jwt($token)
     {
+        if (!is_string($token) || trim($token) === '') {
+            return false; // invalid token
+        }
+
         $parts = explode('.', $token);
         if (count($parts) !== 3) return false;
+
         [$header, $payload, $signature] = $parts;
 
-        $valid_sig = base64_encode(hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true));
-        if (!hash_equals($valid_sig, $signature)) return false;
+        // Recreate the signature
+        $valid_sig = rtrim(strtr(
+            base64_encode(hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true)),
+            '+/', '-_'
+        ), '=');
+
+        if (!hash_equals($valid_sig, $signature)) {
+            return false;
+        }
 
         return json_decode(base64_decode($payload), true);
     }
+
 
     /**
      * validate_jwt
