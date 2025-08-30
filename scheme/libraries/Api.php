@@ -277,20 +277,40 @@ public function get_bearer_token()
      *
      * @return void
      */
-public function require_jwt()
-{
-    $token = $this->get_bearer_token();
-    // If token is null, respond with proper 401 (no decode attempt)
-    if (!$token) {
-        $this->respond_error('Unauthorized: missing token', 401);
+public function require_jwt() {
+    $token = null;
+
+    // Try normal header
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        $authHeader = trim($_SERVER['HTTP_AUTHORIZATION']);
+    } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        // Sometimes Apache puts it here
+        $authHeader = trim($_SERVER['REDIRECT_HTTP_AUTHORIZATION']);
+    } elseif (function_exists('apache_request_headers')) {
+        // Try apache_request_headers
+        $headers = apache_request_headers();
+        if (isset($headers['Authorization'])) {
+            $authHeader = trim($headers['Authorization']);
+        }
     }
 
-    $payload = $this->validate_jwt($token);
-    if (!$payload) {
-        $this->respond_error('Unauthorized: invalid or expired token', 401);
+    if (!empty($authHeader) && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+        $token = $matches[1];
     }
-    return $payload;
+
+    if (!$token) {
+        $this->respond_error('Authorization token not found', 401);
+    }
+
+    $decoded = $this->decode_jwt($token);
+
+    if (!$decoded) {
+        $this->respond_error('Invalid token', 401);
+    }
+
+    return $decoded;
 }
+
 
     // --------------------------
     // Auth: Token System
