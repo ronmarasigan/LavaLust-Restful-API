@@ -229,25 +229,32 @@ class Api
      * @return void
      */
     public function decode_jwt($token)
-    {
-        if (empty($token) || !is_string($token)) {
-            return false;
-        }
-
-        $parts = explode('.', $token);
-        if (count($parts) !== 3) {
-            return false;
-        }
-
-        [$header, $payload, $signature] = $parts;
-        $valid_sig = base64_encode(hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true));
-
-        if (!hash_equals($valid_sig, $signature)) {
-            return false;
-        }
-
-        return json_decode(base64_decode($payload), true);
+{
+    // Ensure we always work with a string
+    if (!is_string($token) || trim($token) === '') {
+        return false;
     }
+
+    $parts = explode('.', $token);
+    if (count($parts) !== 3) {
+        return false;
+    }
+
+    list($header, $payload, $signature) = $parts;
+
+    // Validate signature
+    $valid_sig = base64_encode(
+        hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true)
+    );
+
+    if (!hash_equals($valid_sig, $signature)) {
+        return false;
+    }
+
+    $decoded = json_decode(base64_decode($payload), true);
+    return is_array($decoded) ? $decoded : false;
+}
+
 
 
     /**
