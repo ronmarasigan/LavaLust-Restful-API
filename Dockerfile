@@ -1,10 +1,19 @@
 FROM php:8.2-apache
 
-# Enable mysqli and pdo_mysql
-RUN docker-php-ext-install mysqli pdo pdo_mysql
+# Install PDO MySQL
+RUN docker-php-ext-install pdo pdo_mysql
 
-# Copy app to Apache root
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
+
+# Allow .htaccess overrides
+RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+# Copy app files
 COPY . /var/www/html/
 
-# Expose port
+# Fix permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
 EXPOSE 80
