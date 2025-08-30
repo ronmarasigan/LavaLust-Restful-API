@@ -166,15 +166,10 @@ class Api
      * @param string $token
      * @return void
      */
-    public function decode_jwt($token = null)
+    public function decode_jwt($token)
     {
-        // If no token passed, try to auto-detect it from the Authorization header
-        if ($token === null) {
-            $token = $this->getBearerToken();
-        }
-
-        if (!is_string($token) || trim($token) === '') {
-            return false; // No token provided
+        if (empty($token) || !is_string($token)) {
+            return false;
         }
 
         $parts = explode('.', $token);
@@ -182,18 +177,19 @@ class Api
 
         [$header, $payload, $signature] = $parts;
 
-        // Recreate signature (JWT uses URL-safe base64)
         $valid_sig = rtrim(strtr(
-            base64_encode(hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true)),
-            '+/', '-_'
+            base64_encode(
+                hash_hmac('sha256', "$header.$payload", $this->jwt_secret, true)
+            ),
+            '+/',
+            '-_'
         ), '=');
 
-        if (!hash_equals($valid_sig, $signature)) {
-            return false;
-        }
+        if (!hash_equals($valid_sig, $signature)) return false;
 
         return json_decode(base64_decode($payload), true);
     }
+
 
     //Helper inside the same class
     private function getBearerToken()
