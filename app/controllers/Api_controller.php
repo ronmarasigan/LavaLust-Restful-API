@@ -60,9 +60,6 @@ class Api_controller extends Controller {
 
     public function profile() {
         $auth = $this->api->require_jwt();
-        ?>
-        <script></script>alert(<?php echo json_encode($auth); ?>);</script>
-        <?php
         $this->user_id = $auth['sub'];
         $stmt = $this->db->raw("SELECT id, username, email, role, created_at FROM users WHERE id = ?", [$this->user_id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
