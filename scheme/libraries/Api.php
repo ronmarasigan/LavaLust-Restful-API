@@ -225,12 +225,31 @@ class Api
      */
     public function get_bearer_token()
     {
-        $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-        if (preg_match('/Bearer\s(\S+)/', $header, $matches)) {
+        $header = null;
+
+        // Standard location
+        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            $header = $_SERVER['HTTP_AUTHORIZATION'];
+        }
+        // Nginx / FastCGI
+        elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            $header = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        }
+        // PHP auth header (Render sometimes uses this)
+        elseif (function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+            if (isset($headers['Authorization'])) {
+                $header = $headers['Authorization'];
+            }
+        }
+
+        if ($header && preg_match('/Bearer\s(\S+)/', $header, $matches)) {
             return $matches[1];
         }
+
         return null;
     }
+
 
     /**
      * require_jwt
