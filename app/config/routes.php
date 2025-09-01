@@ -42,6 +42,7 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 |
 |
 */
+
 $_lava =& lava_instance();
 $router->get('/', 'Welcome::index');
 $router->post('login', 'Api_controller::login');

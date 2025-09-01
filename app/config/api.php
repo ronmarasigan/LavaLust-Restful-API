@@ -13,6 +13,28 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 */
 $config['api_helper_enabled'] = TRUE;
 
+
+/*
+|--------------------------------------------------------------------------
+| Payload Token Expiration
+|--------------------------------------------------------------------------
+|
+| Used for Payload Token Expiration
+|
+*/
+$config['payload_token_expiration'] = 1800;
+
+
+/*
+|--------------------------------------------------------------------------
+| Refresh Token Expiration
+|--------------------------------------------------------------------------
+|
+| Used for Refresh Token Expiration
+|
+*/
+$config['refresh_token_expiration'] = 604800;
+
 /*
 |--------------------------------------------------------------------------
 | JWT Secret Token

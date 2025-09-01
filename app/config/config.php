@@ -56,7 +56,7 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 | LavaLust Version
 | -------------------------------------------------------------------
 */
-$config['VERSION']                 = '4.0';
+$config['VERSION']                 = '4.2.0';
 
 /*
 | -------------------------------------------------------------------
@@ -64,7 +64,7 @@ $config['VERSION']                 = '4.0';
 | -------------------------------------------------------------------
 | Values: development and production
 */
-$config['ENVIRONMENT']             = 'production';
+$config['ENVIRONMENT']             = 'development';
 
 /*
 |--------------------------------------------------------------------------
@@ -79,7 +79,7 @@ $config['ENVIRONMENT']             = 'production';
 | WARNING: You MUST set this value!
 |
 */
-$config['base_url'] 				= 'https://lavalust-restful-api.onrender.com/';
+$config['base_url'] 				= '';
 
 /*
 |--------------------------------------------------------------------------
@@ -90,7 +90,7 @@ $config['base_url'] 				= 'https://lavalust-restful-api.onrender.com/';
 | variable to blank.
 |
 */
-$config['index_page']               = '';
+$config['index_page']               = 'index.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -268,7 +268,7 @@ $config['encryption_key']           = '';
 | Soft Delete
 |--------------------------------------------------------------------------
 |
-| Allow soft delete
+| If you use the Encryption class, you must set an encryption key.
 |
 | Default:
 |   $config['soft_delete']  = FALSE;

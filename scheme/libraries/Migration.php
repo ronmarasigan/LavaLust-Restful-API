@@ -139,9 +139,9 @@ class Migration {
     EOT;
 
         if (file_put_contents($filepath, $template)) {
-            echo "Migration {$filename} created successfully.\n";
+            echo "Migration {$filename} created successfully.<br>";
         } else {
-            echo "Error: Could not create migration file.\n";
+            echo "Error: Could not create migration file.<br>";
         }
     }
 
@@ -220,7 +220,7 @@ class Migration {
      */
     protected function get_applied_migrations()
     {
-        $stmt = $this->_lava->db->raw("SELECT migration FROM migrations");
+        $stmt = $this->_lava->db->raw("SELECT migration FROM {$this->migration_table}");
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 

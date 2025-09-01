@@ -1,42 +1,30 @@
-## LavaLust 4.0
-<p align="center">
-    <img width="200" height="300" src="https://raw.githubusercontent.com/ronmarasigan/LavaLust-Docs/master/assets/images/logo1.png">
-</p>
-    LavaLust is a lightweight Web Framework - (using MVC pattern) - for people who are developing web sites using PHP. It helps you write code easily using Object-Oriented Approach. It also provides set of libraries for commonly needed tasks, as well as a helper functions to minimize the amount of time coding.
+# Project Setup Instructions
 
-## Documentation
-[LavaLust Documentation Link](https://lavalust.netlify.app)
+## Step 1: Clone the Repository
+Clone the repository in your project directory.
 
-<p>
-    Note: If you are using PLDT, you need to use google dns (8.8.8.8) to open the documentation website. There is
-    an issue with PLDT and Netlify websites.
-</p>
+```bash
+git clone https://github.com/ronmarasigan/LavaLust-Restful-API.git
+```
+## Step 2: Run the Program
+Open your terminal and run the program on port 3000 using the following command:
 
-## Installation and Tutorials
+```bash
+php -S localhost:3000
+```
+Then, type http://localhost:3000 in your browser and hit enter.
 
-[Checkout LavaLust Tutorial's Youtube Channel](https://youtube.com/ronmarasigan)
+## Step 3: Alternative Access
+If the terminal is not available, you can access the program using the following URL:
 
-### Licence
-<p>
-    MIT License
+```bash
+http://localhost/LavaLust-Restful-API
+```
+## Step 4: Login
+Open rest_api.html and log in using the following credentials:
 
-    Copyright (c) 2020 Ronald M. Marasigan
+Username: admin
+Password: 12345
 
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
 
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-</p>

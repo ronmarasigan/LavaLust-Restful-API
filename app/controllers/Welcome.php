@@ -5,9 +5,5 @@ class Welcome extends Controller {
 	public function index() {
 		$this->call->view('welcome_page');
 	}
-
-	public function register() {
-		
-	}
 }
 ?>

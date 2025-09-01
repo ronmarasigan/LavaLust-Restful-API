@@ -37,8 +37,10 @@ class Api_controller extends Controller {
     }
 
     public function list() {
-        $stmt = $this->db->raw("SELECT id, username, email, role, created_at FROM users");
-        $this->api->respond($stmt->fetchAll(PDO::FETCH_ASSOC));
+        $stmt = $this->db->table('users')
+                        ->select('id, username, email, role, created_at')
+                        ->get_all();
+        $this->api->respond($stmt);
     }
 
     public function create() {
