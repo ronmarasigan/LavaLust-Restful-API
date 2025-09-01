@@ -227,15 +227,12 @@ class Api
     {
         $header = null;
 
-        // Standard location
         if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
             $header = $_SERVER['HTTP_AUTHORIZATION'];
         }
-        // Nginx / FastCGI
         elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
             $header = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
         }
-        // PHP auth header (Render sometimes uses this)
         elseif (function_exists('apache_request_headers')) {
             $headers = apache_request_headers();
             if (isset($headers['Authorization'])) {
