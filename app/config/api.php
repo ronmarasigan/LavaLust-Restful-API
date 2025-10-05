@@ -11,7 +11,7 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 | and disable it back when you're done.
 |
 */
-$config['api_helper_enabled'] = TRUE;
+$config['api_helper_enabled'] = false;
 
 
 /*
